@@ -63,7 +63,7 @@ db.exec(`
 `);
 
 // Seed Data if empty or needs update
-const needsElectronicsSeed = db.prepare("SELECT count(*) as count FROM categories WHERE slug = 'smartphones'").get().count === 0;
+const needsElectronicsSeed = db.prepare("SELECT count(*) as count FROM categories WHERE image = 'https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&q=80&w=400'").get().count === 0;
 if (needsElectronicsSeed) {
   // Clear existing data to avoid conflicts
   db.exec("DELETE FROM products");
@@ -76,7 +76,7 @@ if (needsElectronicsSeed) {
     { name: "Audio & Headphones", slug: "audio", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400" },
     { name: "Wearables", slug: "wearables", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=400" },
     { name: "Cameras", slug: "cameras", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=400" },
-    { name: "Accessories", slug: "accessories", image: "https://images.unsplash.com/photo-1541140532154-b024d715b909?auto=format&fit=crop&q=80&w=400" }
+    { name: "Accessories", slug: "accessories", image: "https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&q=80&w=400" }
   ];
 
   const insertCategory = db.prepare("INSERT INTO categories (name, slug, image) VALUES (?, ?, ?)");

@@ -19,7 +19,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
       <section className="relative h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1920"
+            src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=1920"
             alt="Hero"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -108,7 +108,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-            {trending.map((product) => (
+            {trending.slice(0, 20).map((product) => (
               <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
             ))}
           </div>
@@ -149,7 +149,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-          {bestSellers.map((product) => (
+          {bestSellers.slice(0, 20).map((product) => (
             <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
           ))}
         </div>
