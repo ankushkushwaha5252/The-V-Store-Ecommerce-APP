@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Filter, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Filter, ChevronDown, SlidersHorizontal, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, Category } from '../types';
 import { ProductCard } from './Home';
 
@@ -17,6 +17,50 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
   const [sortBy, setSortBy] = useState('popularity');
   const [priceRange, setPriceRange] = useState(1000);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchQuery, sortBy, priceRange]);
+
+  // If we want "only category should visible", we can show a grid of categories if selectedCategory is null
+  if (!selectedCategory && searchQuery === '') {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Our Collections</h1>
+          <p className="text-gray-500 max-w-xl mx-auto">Browse through our premium categories to find exactly what you're looking for.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {categories.map((cat) => (
+            <motion.div
+              key={cat.id}
+              whileHover={{ y: -10 }}
+              onClick={() => setSelectedCategory(cat.slug)}
+              className="relative aspect-[4/5] rounded-[2rem] overflow-hidden cursor-pointer group"
+            >
+              <img 
+                src={cat.image} 
+                alt={cat.name} 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+                <h3 className="text-3xl font-bold text-white mb-2">{cat.name}</h3>
+                <p className="text-gray-300 text-sm mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Discover the latest trends in {cat.name.toLowerCase()}.
+                </p>
+                <div className="flex items-center text-rose-gold font-bold text-sm">
+                  View Collection <ArrowRight className="ml-2" size={16} />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const filteredProducts = products.filter(p => {
     const categoryMatch = !selectedCategory || categories.find(c => c.id === p.category_id)?.slug === selectedCategory;
@@ -32,6 +76,9 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
   });
 
   const currentCategoryName = selectedCategory ? categories.find(c => c.slug === selectedCategory)?.name : 'All Products';
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -111,12 +158,49 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
 
         {/* Product Grid */}
         <div className="flex-grow">
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
-              ))}
-            </div>
+          {paginatedProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12">
+                {paginatedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
+                ))}
+              </div>
+
+              {/* Pagination UI */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-2 mt-12">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-all"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${
+                        currentPage === i + 1 
+                          ? 'bg-rose-gold text-white' 
+                          : 'border border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-gray-200 disabled:opacity-30 hover:bg-gray-50 transition-all"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
               <SlidersHorizontal className="mx-auto text-gray-300 mb-4" size={48} />

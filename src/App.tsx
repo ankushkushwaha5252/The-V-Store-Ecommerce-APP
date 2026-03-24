@@ -7,6 +7,8 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import ProductDetail from './components/ProductDetail';
 import CategoryPage from './components/CategoryPage';
+import Contact from './components/Contact';
+import Deals from './components/Deals';
 import { AppProvider, useAppContext } from './AppContext';
 import { Product, Category, Address } from './types';
 import { fetchProducts, fetchCategories, fetchTrendingProducts, fetchBestSellers, fetchUserAddresses } from './services/api';
@@ -114,6 +116,10 @@ const AppContent = () => {
         return selectedProductSlug ? <ProductDetail slug={selectedProductSlug} onAddToCart={addToCart} onNavigate={setCurrentPage} /> : null;
       case 'categories':
         return <CategoryPage initialCategory={selectedCategorySlug} searchQuery={searchQuery} products={products} categories={categories} onProductClick={handleProductClick} onAddToCart={addToCart} />;
+      case 'deals':
+        return <Deals products={products} onProductClick={handleProductClick} onAddToCart={addToCart} />;
+      case 'contact':
+        return <Contact />;
       default:
         return <Home trending={trending} bestSellers={bestSellers} categories={categories} onProductClick={handleProductClick} onCategoryClick={handleCategoryClick} onAddToCart={addToCart} />;
     }

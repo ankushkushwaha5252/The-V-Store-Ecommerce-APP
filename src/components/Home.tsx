@@ -37,10 +37,10 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
               New Collection 2026
             </span>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-tight">
-              Elevate Your <br /> <span className="text-rose-gold-light">Lifestyle</span> Experience.
+              The Future of <br /> <span className="text-rose-gold-light">Electronics</span> is Here.
             </h1>
             <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-lg">
-              Discover a curated selection of premium products designed for the modern individual. Quality meets elegance.
+              Discover a curated selection of cutting-edge gadgets and premium tech accessories. Innovation meets elegance.
             </p>
             <div className="flex flex-wrap gap-4">
               <button className="px-8 py-4 bg-white text-premium-black font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all flex items-center group">
@@ -95,11 +95,19 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
       {/* Trending Products */}
       <section className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold tracking-tight mb-4">Trending Now</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">The most sought-after pieces of the season, handpicked for you.</p>
+          <div className="flex justify-between items-end mb-16">
+            <div className="text-left">
+              <h2 className="text-4xl font-bold tracking-tight mb-4">Trending Now</h2>
+              <p className="text-gray-500 max-w-xl">The most sought-after pieces of the season, handpicked for you.</p>
+            </div>
+            <button 
+              onClick={() => onCategoryClick('all')}
+              className="text-rose-gold font-bold flex items-center hover:underline group"
+            >
+              View All <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" size={16} />
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {trending.map((product) => (
               <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
             ))}
@@ -133,8 +141,14 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
             <h2 className="text-3xl font-bold tracking-tight">Best Sellers</h2>
             <p className="text-gray-500 mt-2">Our all-time favorites that never go out of style.</p>
           </div>
+          <button 
+            onClick={() => onCategoryClick('all')}
+            className="text-rose-gold font-bold flex items-center hover:underline group"
+          >
+            View All <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" size={16} />
+          </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
           {bestSellers.map((product) => (
             <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
           ))}
@@ -152,9 +166,9 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
           </div>
           <div className="grid md:grid-cols-3 gap-10">
             {[
-              { name: "Sarah J.", text: "The quality of the products is unmatched. TheVStore has become my go-to for all things premium." },
-              { name: "Michael R.", text: "Fast shipping and excellent customer service. The packaging alone felt like a luxury experience." },
-              { name: "Elena W.", text: "Beautiful designs that truly stand out. I've received so many compliments on my latest purchase!" }
+              { name: "Sarah J.", text: "The noise-cancelling headphones are a game changer. TheVStore has become my go-to for all things tech." },
+              { name: "Michael R.", text: "Fast shipping and excellent customer service. My new smartphone arrived in perfect condition and the performance is incredible." },
+              { name: "Elena W.", text: "Sleek designs and top-tier performance. I've received so many compliments on my latest smartwatch purchase!" }
             ].map((t, i) => (
               <div key={i} className="bg-white/5 p-8 rounded-2xl border border-white/10">
                 <p className="text-gray-300 italic mb-6">"{t.text}"</p>
@@ -172,46 +186,46 @@ export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) =
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100"
+      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-100 flex flex-col h-full"
     >
-      <div className="relative aspect-[4/5] overflow-hidden cursor-pointer" onClick={() => onClick(product.slug)}>
+      <div className="relative aspect-square overflow-hidden cursor-pointer" onClick={() => onClick(product.slug)}>
         <img
           src={product.image}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute top-4 right-4 flex flex-col gap-2">
-          <button className="p-2 bg-white/80 backdrop-blur-md rounded-full text-premium-black hover:bg-rose-gold hover:text-white transition-all shadow-sm">
-            <Star size={16} />
+        <div className="absolute top-2 right-2 flex flex-col gap-2">
+          <button className="p-1.5 bg-white/80 backdrop-blur-md rounded-full text-premium-black hover:bg-rose-gold hover:text-white transition-all shadow-sm">
+            <Star size={14} />
           </button>
         </div>
         {product.is_trending === 1 && (
-          <div className="absolute top-4 left-4 bg-rose-gold text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest">
+          <div className="absolute top-2 left-2 bg-rose-gold text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
             Trending
           </div>
         )}
       </div>
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-lg leading-tight cursor-pointer hover:text-rose-gold transition-colors" onClick={() => onClick(product.slug)}>
+      <div className="p-3 md:p-4 flex flex-col flex-grow">
+        <div className="mb-1">
+          <h3 className="font-bold text-sm md:text-base leading-tight cursor-pointer hover:text-rose-gold transition-colors line-clamp-1" onClick={() => onClick(product.slug)}>
             {product.name}
           </h3>
         </div>
-        <div className="flex items-center text-xs text-gray-400 mb-4">
-          <div className="flex items-center text-rose-gold mr-2">
-            <Star size={12} fill="currentColor" />
+        <div className="flex items-center text-[10px] text-gray-400 mb-3">
+          <div className="flex items-center text-rose-gold mr-1.5">
+            <Star size={10} fill="currentColor" />
             <span className="ml-1 font-bold">{product.rating}</span>
           </div>
-          <span>(120 reviews)</span>
+          <span className="hidden sm:inline">(120)</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-black">${product.price}</span>
+        <div className="mt-auto flex items-center justify-between gap-2">
+          <span className="text-base md:text-lg font-black">${product.price}</span>
           <button
             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-            className="px-4 py-2 bg-premium-black text-white text-sm font-bold rounded-lg hover:bg-rose-gold transition-all"
+            className="px-3 py-1.5 bg-premium-black text-white text-[10px] md:text-xs font-bold rounded-lg hover:bg-rose-gold transition-all whitespace-nowrap"
           >
-            Add to Cart
+            Add
           </button>
         </div>
       </div>
