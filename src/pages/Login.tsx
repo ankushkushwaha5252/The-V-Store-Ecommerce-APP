@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAppContext } from '../AppContext';
+import { useNavigate } from 'react-router-dom';
 
-const Login = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
+const Login = () => {
   const [view, setView] = useState<'login' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +12,7 @@ const Login = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useAppContext();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ const Login = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
         if (res.ok) {
           const user = await res.json();
           setUser(user);
-          onNavigate('home');
+          navigate('/');
         } else {
           const data = await res.json();
           setError(data.error || 'Login failed');
@@ -156,7 +158,7 @@ const Login = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
             {view === 'login' ? (
               <>
                 Don't have an account?{' '}
-                <button onClick={() => onNavigate('register')} className="font-bold text-rose-gold hover:underline">
+                <button onClick={() => navigate('/register')} className="font-bold text-rose-gold hover:underline">
                   Create Account
                 </button>
               </>

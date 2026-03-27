@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { User, Mail, Phone, Lock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const Register = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
+const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,7 +27,7 @@ const Register = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
       });
 
       if (res.ok) {
-        onNavigate('login');
+        navigate('/login');
       } else {
         const data = await res.json();
         setError(data.error || 'Registration failed');
@@ -129,7 +131,7 @@ const Register = ({ onNavigate }: { onNavigate: (page: string) => void }) => {
         <div className="mt-10 text-center">
           <p className="text-gray-500 text-sm">
             Already have an account?{' '}
-            <button onClick={() => onNavigate('login')} className="font-bold text-rose-gold hover:underline">
+            <button onClick={() => navigate('/login')} className="font-bold text-rose-gold hover:underline">
               Sign In
             </button>
           </p>

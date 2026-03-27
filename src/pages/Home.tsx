@@ -1,19 +1,36 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Star, Minus, Plus } from 'lucide-react';
-import { Product, Category } from '../types';
+import { ArrowRight, Star } from 'lucide-react';
 import { useAppContext } from '../AppContext';
+import { useNavigate } from 'react-router-dom';
+import { ProductCard } from '../components/ProductCard';
 
-interface HomeProps {
-  trending: Product[];
-  bestSellers: Product[];
-  categories: Category[];
-  onProductClick: (slug: string) => void;
-  onCategoryClick: (slug: string) => void;
-  onAddToCart: (product: Product) => void;
-}
+const Home = () => {
+  const { categories, addToCart, trending, bestSellers } = useAppContext();
+  const navigate = useNavigate();
 
-const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProductClick, onCategoryClick, onAddToCart }) => {
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+  };
+
+  const handleCategoryClick = (slug: string | null) => {
+    if (slug) {
+      navigate(`/categories/${slug}`);
+    } else {
+      navigate('/categories');
+    }
+  };
+
+  const handleViewAll = (filter: string) => {
+    if (filter === 'trending') {
+      navigate('/categories?filter=trending');
+    } else if (filter === 'best-seller') {
+      navigate('/categories?filter=best-seller');
+    } else {
+      navigate('/categories');
+    }
+  };
+
   return (
     <div className="space-y-20 pb-20">
       {/* Hero Section */}
@@ -44,7 +61,10 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
               Discover a curated selection of cutting-edge gadgets and premium tech accessories. Innovation meets elegance.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button className="px-8 py-4 bg-white text-premium-black font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all flex items-center group">
+              <button 
+                onClick={() => navigate('/categories')}
+                className="px-8 py-4 bg-white text-premium-black font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all flex items-center group"
+              >
                 Shop Now <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
               </button>
               <button className="px-8 py-4 border border-white/30 backdrop-blur-md text-white font-bold rounded-full hover:bg-white/10 transition-all">
@@ -62,18 +82,21 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
             <h2 className="text-3xl font-bold tracking-tight">Shop by Category</h2>
             <p className="text-gray-500 mt-2">Explore our diverse range of premium collections.</p>
           </div>
-          <button className="text-rose-gold font-semibold flex items-center hover:underline">
+          <button 
+            onClick={() => handleCategoryClick(null)}
+            className="text-rose-gold font-semibold flex items-center hover:underline"
+          >
             View All <ArrowRight className="ml-1" size={16} />
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {categories.map((cat, idx) => (
+          {categories.slice(0, 4).map((cat, idx) => (
             <motion.div
               key={cat.id}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.1 }}
-              onClick={() => onCategoryClick(cat.slug)}
+              onClick={() => handleCategoryClick(cat.slug)}
               className="group cursor-pointer"
             >
               <div className="relative aspect-square rounded-2xl overflow-hidden mb-4">
@@ -102,7 +125,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
               <p className="text-gray-500 max-w-xl">The most sought-after pieces of the season, handpicked for you.</p>
             </div>
             <button 
-              onClick={() => onCategoryClick('all')}
+              onClick={() => handleViewAll('trending')}
               className="text-rose-gold font-bold flex items-center hover:underline group"
             >
               View All <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" size={16} />
@@ -110,7 +133,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
             {trending.slice(0, 20).map((product) => (
-              <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
+              <ProductCard key={product.id} product={product} onClick={handleProductClick} onAddToCart={addToCart} />
             ))}
           </div>
         </div>
@@ -143,7 +166,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
             <p className="text-gray-500 mt-2">Our all-time favorites that never go out of style.</p>
           </div>
           <button 
-            onClick={() => onCategoryClick('all')}
+            onClick={() => handleViewAll('best-seller')}
             className="text-rose-gold font-bold flex items-center hover:underline group"
           >
             View All <ArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" size={16} />
@@ -151,7 +174,7 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
           {bestSellers.slice(0, 20).map((product) => (
-            <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
+            <ProductCard key={product.id} product={product} onClick={handleProductClick} onAddToCart={addToCart} />
           ))}
         </div>
       </section>
@@ -180,95 +203,6 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
         </div>
       </section>
     </div>
-  );
-};
-
-export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) => void, onAddToCart: (product: Product) => void }> = ({ product, onClick, onAddToCart }) => {
-  const { cart, updateQuantity } = useAppContext();
-  const cartItem = cart.find(item => item.id === product.id);
-  const quantity = cartItem ? cartItem.quantity : 0;
-  const isOutOfStock = product.stock <= 0;
-
-  return (
-    <motion.div
-      whileHover={{ y: -5 }}
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-100 flex flex-col h-full"
-    >
-      <div className="relative aspect-square overflow-hidden cursor-pointer" onClick={() => onClick(product.slug)}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute top-2 right-2 flex flex-col gap-2">
-          <button className="p-1.5 bg-white/80 backdrop-blur-md rounded-full text-premium-black hover:bg-rose-gold hover:text-white transition-all shadow-sm">
-            <Star size={14} />
-          </button>
-        </div>
-        {product.is_trending === 1 && (
-          <div className="absolute top-2 left-2 bg-rose-gold text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
-            Trending
-          </div>
-        )}
-        {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
-            <span className="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Out of Stock
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="p-3 md:p-4 flex flex-col flex-grow">
-        <div className="mb-1">
-          <h3 className="font-bold text-sm md:text-base leading-tight cursor-pointer hover:text-rose-gold transition-colors line-clamp-1" onClick={() => onClick(product.slug)}>
-            {product.name}
-          </h3>
-        </div>
-        <div className="flex items-center text-[10px] text-gray-400 mb-3">
-          <div className="flex items-center text-rose-gold mr-1.5">
-            <Star size={10} fill="currentColor" />
-            <span className="ml-1 font-bold">{product.rating}</span>
-          </div>
-          <span className="hidden sm:inline">(120)</span>
-        </div>
-        <div className="mt-auto flex items-center justify-between gap-2">
-          <span className="text-base md:text-lg font-black">${product.price}</span>
-          
-          {isOutOfStock ? (
-            <button
-              disabled
-              className="px-3 py-1.5 bg-gray-200 text-gray-500 text-[10px] md:text-xs font-bold rounded-lg cursor-not-allowed whitespace-nowrap"
-            >
-              Out of Stock
-            </button>
-          ) : quantity > 0 ? (
-            <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-              <button
-                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, quantity - 1); }}
-                className="p-1.5 hover:bg-rose-gold hover:text-white transition-all"
-              >
-                <Minus size={14} />
-              </button>
-              <span className="px-2 text-xs font-bold min-w-[24px] text-center">{quantity}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, quantity + 1); }}
-                className="p-1.5 hover:bg-rose-gold hover:text-white transition-all"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-              className="px-3 py-1.5 bg-premium-black text-white text-[10px] md:text-xs font-bold rounded-lg hover:bg-rose-gold transition-all whitespace-nowrap"
-            >
-              Add
-            </button>
-          )}
-        </div>
-      </div>
-    </motion.div>
   );
 };
 

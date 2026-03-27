@@ -1,18 +1,20 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Tag, Zap, Clock, ArrowRight } from 'lucide-react';
-import { Product } from '../types';
-import { ProductCard } from './Home';
+import { ProductCard } from '../components/ProductCard';
+import { useAppContext } from '../AppContext';
+import { useNavigate } from 'react-router-dom';
 
-interface DealsProps {
-  products: Product[];
-  onProductClick: (slug: string) => void;
-  onAddToCart: (product: Product) => void;
-}
-
-const Deals: React.FC<DealsProps> = ({ products, onProductClick, onAddToCart }) => {
+const Deals = () => {
+  const { products, addToCart } = useAppContext();
+  const navigate = useNavigate();
+  
   // Filter products that might be on "sale" (for demo, we'll just take a few)
   const dealProducts = products.slice(0, 3);
+
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -52,7 +54,10 @@ const Deals: React.FC<DealsProps> = ({ products, onProductClick, onAddToCart }) 
                   <span className="text-[10px] uppercase tracking-widest opacity-60 font-bold">Secs</span>
                 </div>
               </div>
-              <button className="px-10 py-4 bg-white text-premium-black font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all flex items-center group">
+              <button 
+                onClick={() => navigate('/categories')}
+                className="px-10 py-4 bg-white text-premium-black font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all flex items-center group"
+              >
                 Shop the Sale <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
               </button>
             </div>
@@ -85,7 +90,7 @@ const Deals: React.FC<DealsProps> = ({ products, onProductClick, onAddToCart }) 
               <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
                 Save 20%
               </div>
-              <ProductCard product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
+              <ProductCard product={product} onClick={handleProductClick} onAddToCart={addToCart} />
             </div>
           ))}
         </div>

@@ -2,22 +2,26 @@ import React, { useState } from 'react';
 import { ShoppingCart, User, Search, Menu, X, LogOut } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link, useNavigate } from 'react-router-dom';
 
-const Navbar = ({ onNavigate, onSearch }: { onNavigate: (page: string) => void, onSearch: (query: string) => void }) => {
+const Navbar = () => {
   const { user, setUser, cart } = useAppContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const navigate = useNavigate();
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleSearch = (value: string) => {
     setSearchValue(value);
-    onSearch(value);
     if (value.trim() !== '') {
-      onNavigate('categories');
+      navigate(`/categories?search=${encodeURIComponent(value)}`);
     }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearch(e.target.value);
   };
 
   return (
@@ -25,18 +29,18 @@ const Navbar = ({ onNavigate, onSearch }: { onNavigate: (page: string) => void, 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => onNavigate('home')}>
+          <Link to="/" className="flex-shrink-0 flex items-center cursor-pointer">
             <span className="text-2xl font-bold tracking-tighter text-premium-black">
               The<span className="text-rose-gold">V</span>Store
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8 items-center">
-            <button onClick={() => onNavigate('home')} className="text-sm font-medium hover:text-rose-gold transition-colors">Home</button>
-            <button onClick={() => onNavigate('categories')} className="text-sm font-medium hover:text-rose-gold transition-colors">Categories</button>
-            <button onClick={() => onNavigate('deals')} className="text-sm font-medium hover:text-rose-gold transition-colors">Deals</button>
-            <button onClick={() => onNavigate('contact')} className="text-sm font-medium hover:text-rose-gold transition-colors">Contact</button>
+            <Link to="/" className="text-sm font-medium hover:text-rose-gold transition-colors">Home</Link>
+            <Link to="/categories" className="text-sm font-medium hover:text-rose-gold transition-colors">Categories</Link>
+            <Link to="/deals" className="text-sm font-medium hover:text-rose-gold transition-colors">Deals</Link>
+            <Link to="/contact" className="text-sm font-medium hover:text-rose-gold transition-colors">Contact</Link>
           </div>
 
           {/* Icons */}
@@ -44,27 +48,27 @@ const Navbar = ({ onNavigate, onSearch }: { onNavigate: (page: string) => void, 
             <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Search size={20} />
             </button>
-            <button onClick={() => onNavigate('cart')} className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
+            <Link to="/cart" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
               <ShoppingCart size={20} />
               {cartCount > 0 && (
                 <span className="absolute top-0 right-0 bg-rose-gold text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {cartCount}
                 </span>
               )}
-            </button>
+            </Link>
             {user ? (
               <div className="flex items-center space-x-2">
-                <button onClick={() => onNavigate('dashboard')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Link to="/profile" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                   <User size={20} />
-                </button>
-                <button onClick={() => { setUser(null); onNavigate('home'); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+                </Link>
+                <button onClick={() => { setUser(null); navigate('/'); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
                   <LogOut size={20} />
                 </button>
               </div>
             ) : (
-              <button onClick={() => onNavigate('login')} className="text-sm font-semibold px-4 py-2 bg-premium-black text-white rounded-full hover:bg-rose-gold transition-all">
+              <Link to="/login" className="text-sm font-semibold px-4 py-2 bg-premium-black text-white rounded-full hover:bg-rose-gold transition-all">
                 Login
-              </button>
+              </Link>
             )}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors">
               {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -83,10 +87,10 @@ const Navbar = ({ onNavigate, onSearch }: { onNavigate: (page: string) => void, 
             className="md:hidden bg-white border-b border-gray-100 overflow-hidden"
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
-              <button onClick={() => { onNavigate('home'); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Home</button>
-              <button onClick={() => { onNavigate('categories'); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Categories</button>
-              <button onClick={() => { onNavigate('deals'); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Deals</button>
-              <button onClick={() => { onNavigate('contact'); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-4 text-base font-medium">Contact</button>
+              <Link to="/" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Home</Link>
+              <Link to="/categories" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Categories</Link>
+              <Link to="/deals" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-4 text-base font-medium border-b border-gray-50">Deals</Link>
+              <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block w-full text-left px-3 py-4 text-base font-medium">Contact</Link>
             </div>
           </motion.div>
         )}
@@ -140,9 +144,7 @@ const Navbar = ({ onNavigate, onSearch }: { onNavigate: (page: string) => void, 
                     <button 
                       key={term}
                       onClick={() => {
-                        setSearchValue(term);
-                        onSearch(term);
-                        onNavigate('categories');
+                        handleSearch(term);
                         setIsSearchOpen(false);
                       }}
                       className="px-4 py-2 bg-gray-50 hover:bg-rose-gold hover:text-white rounded-full text-sm font-medium transition-all"

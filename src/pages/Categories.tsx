@@ -1,73 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Filter, ChevronDown, SlidersHorizontal, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Product, Category } from '../types';
-import { ProductCard } from './Home';
+import { Filter, ChevronDown, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAppContext } from '../AppContext';
+import { ProductCard } from '../components/ProductCard';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 
-interface CategoryPageProps {
-  initialCategory: string | null;
-  searchQuery?: string;
-  products: Product[];
-  categories: Category[];
-  onProductClick: (slug: string) => void;
-  onAddToCart: (product: Product) => void;
-}
+const Categories = () => {
+  const { products, categories, addToCart } = useAppContext();
+  const { slug } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuery = '', products, categories, onProductClick, onAddToCart }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
+  const initialFilter = searchParams.get('filter');
+  const searchQuery = searchParams.get('search') || '';
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(slug || null);
+  const [filterBy, setFilterBy] = useState<string | null>(initialFilter);
   const [sortBy, setSortBy] = useState('popularity');
   const [priceRange, setPriceRange] = useState(1000);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, searchQuery, sortBy, priceRange]);
+    setSelectedCategory(slug || null);
+  }, [slug]);
 
-  // If we want "only category should visible", we can show a grid of categories if selectedCategory is null
-  if (!selectedCategory && searchQuery === '') {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Our Collections</h1>
-          <p className="text-gray-500 max-w-xl mx-auto">Browse through our premium categories to find exactly what you're looking for.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((cat) => (
-            <motion.div
-              key={cat.id}
-              whileHover={{ y: -10 }}
-              onClick={() => setSelectedCategory(cat.slug)}
-              className="relative aspect-[4/5] rounded-[2rem] overflow-hidden cursor-pointer group"
-            >
-              <img 
-                src={cat.image} 
-                alt={cat.name} 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                <h3 className="text-3xl font-bold text-white mb-2">{cat.name}</h3>
-                <p className="text-gray-300 text-sm mb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  Discover the latest trends in {cat.name.toLowerCase()}.
-                </p>
-                <div className="flex items-center text-rose-gold font-bold text-sm">
-                  View Collection <ArrowRight className="ml-2" size={16} />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setFilterBy(searchParams.get('filter'));
+  }, [searchParams]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, filterBy, searchQuery, sortBy, priceRange]);
+
+  const handleProductClick = (productSlug: string) => {
+    navigate(`/product/${productSlug}`);
+  };
+
+  const handleCategorySelect = (categorySlug: string | null) => {
+    if (categorySlug) {
+      navigate(`/categories/${categorySlug}${filterBy ? `?filter=${filterBy}` : ''}`);
+    } else {
+      navigate(`/categories${filterBy ? `?filter=${filterBy}` : ''}`);
+    }
+  };
+
+  const handleFilterSelect = (filter: string | null) => {
+    const baseUrl = selectedCategory ? `/categories/${selectedCategory}` : '/categories';
+    if (filter) {
+      navigate(`${baseUrl}?filter=${filter}`);
+    } else {
+      navigate(baseUrl);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setPriceRange(1000);
+    setSortBy('popularity');
+    navigate('/categories');
+  };
 
   const filteredProducts = products.filter(p => {
     const categoryMatch = !selectedCategory || categories.find(c => c.id === p.category_id)?.slug === selectedCategory;
     const priceMatch = p.price <= priceRange;
     const searchMatch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return categoryMatch && priceMatch && searchMatch;
+    const trendingMatch = filterBy === 'trending' ? p.is_trending === 1 : true;
+    const bestSellerMatch = filterBy === 'best-seller' ? p.is_best_seller === 1 : true;
+    
+    return categoryMatch && priceMatch && searchMatch && trendingMatch && bestSellerMatch;
   }).sort((a, b) => {
     if (sortBy === 'price-low') return a.price - b.price;
     if (sortBy === 'price-high') return b.price - a.price;
@@ -75,7 +75,9 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
     return 0;
   });
 
-  const currentCategoryName = selectedCategory ? categories.find(c => c.slug === selectedCategory)?.name : 'All Products';
+  const currentCategoryName = filterBy === 'trending' ? 'Trending Products' : 
+                            filterBy === 'best-seller' ? 'Best Sellers' :
+                            selectedCategory ? categories.find(c => c.slug === selectedCategory)?.name : 'All Products';
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -112,18 +114,31 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
         {/* Filters Sidebar */}
         <aside className="hidden lg:block w-64 flex-shrink-0 space-y-10">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Categories</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Collections</h3>
             <div className="space-y-3">
               <button
-                onClick={() => setSelectedCategory(null)}
-                className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-bold transition-all ${!selectedCategory ? 'bg-rose-gold text-white' : 'hover:bg-gray-100'}`}
+                onClick={() => handleFilterSelect('trending')}
+                className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-bold transition-all ${filterBy === 'trending' ? 'bg-rose-gold text-white' : 'hover:bg-gray-100'}`}
               >
-                All Categories
+                Trending Now
+              </button>
+              <button
+                onClick={() => handleFilterSelect('best-seller')}
+                className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-bold transition-all ${filterBy === 'best-seller' ? 'bg-rose-gold text-white' : 'hover:bg-gray-100'}`}
+              >
+                Best Sellers
+              </button>
+              <div className="h-px bg-gray-100 my-4"></div>
+              <button
+                onClick={() => { handleCategorySelect(null); handleFilterSelect(null); }}
+                className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-bold transition-all ${!selectedCategory && !filterBy ? 'bg-rose-gold text-white' : 'hover:bg-gray-100'}`}
+              >
+                All Products
               </button>
               {categories.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setSelectedCategory(cat.slug)}
+                  onClick={() => handleCategorySelect(cat.slug)}
                   className={`block w-full text-left px-4 py-2 rounded-lg text-sm font-bold transition-all ${selectedCategory === cat.slug ? 'bg-rose-gold text-white' : 'hover:bg-gray-100'}`}
                 >
                   {cat.name}
@@ -149,6 +164,14 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
             </div>
           </div>
 
+          <button
+            onClick={handleClearFilters}
+            className="w-full py-3 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all flex items-center justify-center space-x-2"
+          >
+            <SlidersHorizontal size={14} />
+            <span>Clear All Filters</span>
+          </button>
+
           <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
             <h4 className="font-bold mb-2">Need Help?</h4>
             <p className="text-xs text-gray-500 leading-relaxed mb-4">Our style experts are here to help you find the perfect piece.</p>
@@ -162,7 +185,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12">
                 {paginatedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onClick={onProductClick} onAddToCart={onAddToCart} />
+                  <ProductCard key={product.id} product={product} onClick={handleProductClick} onAddToCart={addToCart} />
                 ))}
               </div>
 
@@ -207,7 +230,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
               <h3 className="text-xl font-bold mb-2">No products found</h3>
               <p className="text-gray-500">Try adjusting your filters to find what you're looking for.</p>
               <button
-                onClick={() => { setSelectedCategory(null); setPriceRange(1000); }}
+                onClick={handleClearFilters}
                 className="mt-6 text-rose-gold font-bold hover:underline"
               >
                 Clear all filters
@@ -220,4 +243,4 @@ const CategoryPage: React.FC<CategoryPageProps> = ({ initialCategory, searchQuer
   );
 };
 
-export default CategoryPage;
+export default Categories;

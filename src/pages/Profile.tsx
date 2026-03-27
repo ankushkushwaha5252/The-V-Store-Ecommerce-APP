@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { User, MapPin, Package, LogOut, Plus, Phone, Home, Building } from 'lucide-react';
+import { User, MapPin, Package, LogOut, Plus, Phone, Home } from 'lucide-react';
 import { useAppContext } from '../AppContext';
-import { Address } from '../types';
 import { saveAddress } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
-const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (page: string) => void, addresses: Address[], onAddressAdded: () => void }) => {
-  const { user, setUser } = useAppContext();
+const Profile = () => {
+  const { user, setUser, addresses, fetchAddresses } = useAppContext();
+  const navigate = useNavigate();
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({
     fullName: '',
@@ -17,10 +18,13 @@ const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (pag
     pincode: '',
   });
 
-  if (!user) {
-    onNavigate('login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) return null;
 
   const handleAddAddress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +32,7 @@ const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (pag
       await saveAddress({ ...newAddress, userId: user.id });
       setIsAddingAddress(false);
       setNewAddress({ fullName: '', phone: '', addressLine: '', city: '', state: '', pincode: '' });
-      onAddressAdded();
+      fetchAddresses();
     } catch (err) {
       console.error(err);
     }
@@ -60,7 +64,7 @@ const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (pag
             <span>Addresses</span>
           </button>
           <button
-            onClick={() => { setUser(null); onNavigate('home'); }}
+            onClick={() => { setUser(null); navigate('/'); }}
             className="w-full flex items-center space-x-3 px-6 py-4 hover:bg-red-50 text-red-500 rounded-2xl font-bold transition-all"
           >
             <LogOut size={20} />
@@ -97,7 +101,7 @@ const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (pag
                 </div>
                 <h3 className="font-bold mb-1">Order History</h3>
                 <p className="text-sm text-gray-500 mb-6">You haven't placed any orders yet.</p>
-                <button onClick={() => onNavigate('home')} className="text-sm font-bold text-rose-gold hover:underline">Start Shopping</button>
+                <button onClick={() => navigate('/')} className="text-sm font-bold text-rose-gold hover:underline">Start Shopping</button>
               </div>
             </div>
           </section>
@@ -240,4 +244,4 @@ const Dashboard = ({ onNavigate, addresses, onAddressAdded }: { onNavigate: (pag
   );
 };
 
-export default Dashboard;
+export default Profile;

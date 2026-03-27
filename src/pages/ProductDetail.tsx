@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Star, ShoppingCart, ShieldCheck, Truck, RefreshCw, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react';
+import { Star, ShoppingCart, ShieldCheck, Truck, RefreshCw, Plus, Minus } from 'lucide-react';
 import { Product } from '../types';
 import { fetchProductBySlug, fetchTrendingProducts } from '../services/api';
-import { ProductCard } from './Home';
+import { ProductCard } from '../components/ProductCard';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAppContext } from '../AppContext';
 
-interface ProductDetailProps {
-  slug: string;
-  onAddToCart: (product: Product) => void;
-  onNavigate: (page: string) => void;
-}
-
-const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavigate }) => {
+const ProductDetail = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { addToCart } = useAppContext();
+  
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
@@ -19,6 +19,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
 
   useEffect(() => {
     const loadProduct = async () => {
+      if (!slug) return;
       setIsLoading(true);
       try {
         const p = await fetchProductBySlug(slug);
@@ -43,6 +44,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
   }
 
   if (!product) return <div className="text-center py-20">Product not found</div>;
+
+  const handleProductClick = (productSlug: string) => {
+    navigate(`/product/${productSlug}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -112,8 +117,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
                   </div>
                   <button
                     onClick={() => {
-                      for(let i=0; i<quantity; i++) onAddToCart(product);
-                      onNavigate('cart');
+                      for(let i=0; i<quantity; i++) addToCart(product);
+                      navigate('/cart');
                     }}
                     className="flex-grow py-4 bg-premium-black text-white font-bold rounded-2xl hover:bg-rose-gold transition-all flex items-center justify-center group"
                   >
@@ -170,7 +175,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
         <h2 className="text-3xl font-bold tracking-tight mb-10">You May Also Like</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
           {related.map((p) => (
-            <ProductCard key={p.id} product={p} onClick={(slug) => onNavigate('product-detail')} onAddToCart={onAddToCart} />
+            <ProductCard key={p.id} product={p} onClick={handleProductClick} onAddToCart={addToCart} />
           ))}
         </div>
       </section>

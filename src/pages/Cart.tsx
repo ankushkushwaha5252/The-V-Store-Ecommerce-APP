@@ -1,22 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, MapPin } from 'lucide-react';
 import { useAppContext } from '../AppContext';
 import { Address } from '../types';
+import { useNavigate } from 'react-router-dom';
 
-interface CartProps {
-  onCheckout: (address: Address) => void;
-  addresses: Address[];
-  onNavigate: (page: string) => void;
-}
-
-const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
-  const { cart, removeFromCart, updateQuantity, user } = useAppContext();
-  const [selectedAddress, setSelectedAddress] = React.useState<Address | null>(addresses[0] || null);
+const Cart = () => {
+  const { cart, removeFromCart, updateQuantity, user, addresses, handleCheckout } = useAppContext();
+  const navigate = useNavigate();
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(addresses[0] || null);
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = subtotal > 500 ? 0 : 20;
   const total = subtotal + shipping;
+
+  const handleProductClick = (slug: string) => {
+    navigate(`/product/${slug}`);
+  };
 
   if (cart.length === 0) {
     return (
@@ -27,7 +27,7 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
         <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
         <p className="text-gray-500 mb-8 text-center max-w-xs">Looks like you haven't added anything to your cart yet.</p>
         <button
-          onClick={() => onNavigate('home')}
+          onClick={() => navigate('/')}
           className="px-8 py-3 bg-premium-black text-white font-bold rounded-full hover:bg-rose-gold transition-all"
         >
           Start Shopping
@@ -51,11 +51,11 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
             >
-              <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
+              <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => handleProductClick(item.slug)}>
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="flex-grow">
-                <h3 className="font-bold text-lg leading-tight mb-1">{item.name}</h3>
+                <h3 className="font-bold text-lg leading-tight mb-1 cursor-pointer hover:text-rose-gold transition-colors" onClick={() => handleProductClick(item.slug)}>{item.name}</h3>
                 <p className="text-rose-gold font-bold mb-3">${item.price}</p>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
@@ -96,7 +96,7 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
                   Delivery Address
                 </h2>
                 <button
-                  onClick={() => onNavigate('dashboard')}
+                  onClick={() => navigate('/profile')}
                   className="text-sm font-bold text-rose-gold hover:underline"
                 >
                   Manage Addresses
@@ -127,7 +127,7 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
                 <div className="text-center py-6">
                   <p className="text-gray-500 mb-4">No addresses saved yet.</p>
                   <button
-                    onClick={() => onNavigate('dashboard')}
+                    onClick={() => navigate('/profile')}
                     className="px-6 py-2 border border-rose-gold text-rose-gold font-bold rounded-full hover:bg-rose-gold hover:text-white transition-all"
                   >
                     Add New Address
@@ -160,7 +160,7 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
 
             {!user ? (
               <button
-                onClick={() => onNavigate('login')}
+                onClick={() => navigate('/login')}
                 className="w-full py-4 bg-premium-black text-white font-bold rounded-full hover:bg-rose-gold transition-all mb-4"
               >
                 Login to Checkout
@@ -168,7 +168,7 @@ const Cart: React.FC<CartProps> = ({ onCheckout, addresses, onNavigate }) => {
             ) : (
               <button
                 disabled={!selectedAddress}
-                onClick={() => selectedAddress && onCheckout(selectedAddress)}
+                onClick={() => selectedAddress && handleCheckout(selectedAddress)}
                 className={`w-full py-4 font-bold rounded-full transition-all flex items-center justify-center group ${
                   selectedAddress
                     ? 'bg-premium-black text-white hover:bg-rose-gold'
