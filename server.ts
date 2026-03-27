@@ -37,6 +37,7 @@ db.exec(`
     rating REAL DEFAULT 0,
     is_trending INTEGER DEFAULT 0,
     is_best_seller INTEGER DEFAULT 0,
+    stock INTEGER DEFAULT 10,
     FOREIGN KEY (category_id) REFERENCES categories(id)
   );
 
@@ -62,8 +63,15 @@ db.exec(`
   );
 `);
 
+// Migration: Add stock column if it doesn't exist
+const tableInfo = db.prepare("PRAGMA table_info(products)").all() as any[];
+const hasStock = tableInfo.some(col => col.name === 'stock');
+if (!hasStock) {
+  db.exec("ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10");
+}
+
 // Seed Data if empty or needs update
-const needsElectronicsSeed = db.prepare("SELECT count(*) as count FROM categories WHERE image = 'https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&q=80&w=400'").get().count === 0;
+const needsElectronicsSeed = db.prepare("SELECT count(*) as count FROM products WHERE stock IS NOT NULL").get().count === 0;
 if (needsElectronicsSeed) {
   // Clear existing data to avoid conflicts
   db.exec("DELETE FROM products");
@@ -82,7 +90,7 @@ if (needsElectronicsSeed) {
   const insertCategory = db.prepare("INSERT INTO categories (name, slug, image) VALUES (?, ?, ?)");
   categories.forEach(cat => insertCategory.run(cat.name, cat.slug, cat.image));
 
-  const insertProduct = db.prepare("INSERT INTO products (name, slug, description, price, category_id, image, rating, is_trending, is_best_seller) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  const insertProduct = db.prepare("INSERT INTO products (name, slug, description, price, category_id, image, rating, is_trending, is_best_seller, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
   const productTemplates = [
     { catId: 1, prefix: "Phone", names: ["Pro Max", "Ultra", "Lite", "Fold", "Flip", "Neo", "Edge", "Prime", "Plus", "S", "X", "Z", "V", "Alpha", "Omega"] },
@@ -102,6 +110,7 @@ if (needsElectronicsSeed) {
       const rating = (Math.random() * 1.5 + 3.5).toFixed(1);
       const isTrending = Math.random() > 0.8 ? 1 : 0;
       const isBestSeller = Math.random() > 0.8 ? 1 : 0;
+      const stock = Math.floor(Math.random() * 20); // Some will be 0
       const image = `https://picsum.photos/seed/${slug}/600/600`;
       
       insertProduct.run(
@@ -113,7 +122,8 @@ if (needsElectronicsSeed) {
         image,
         rating,
         isTrending,
-        isBestSeller
+        isBestSeller,
+        stock
       );
       productCount++;
     });
@@ -133,7 +143,8 @@ if (needsElectronicsSeed) {
       `https://picsum.photos/seed/${slug}/600/600`,
       4.9,
       1,
-      1
+      1,
+      5
     );
   }
 }
@@ -191,6 +202,17 @@ async function startServer() {
       res.json({ id: user.id, name: user.name, email: user.email, phone: user.phone });
     } else {
       res.status(401).json({ error: "Invalid credentials" });
+    }
+  });
+
+  app.post("/api/forgot-password", (req, res) => {
+    const { email } = req.body;
+    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+    if (user) {
+      // In a real app, you'd send an email here.
+      res.json({ message: "Password reset link sent to your email." });
+    } else {
+      res.status(404).json({ error: "No account found with this email." });
     }
   });
 

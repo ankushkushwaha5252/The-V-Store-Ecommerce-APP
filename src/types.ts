@@ -9,6 +9,7 @@ export interface Product {
   rating: number;
   is_trending: number;
   is_best_seller: number;
+  stock: number;
 }
 
 export interface Category {

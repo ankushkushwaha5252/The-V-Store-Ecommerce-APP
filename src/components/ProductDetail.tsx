@@ -68,10 +68,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
         {/* Product Info */}
         <div className="flex flex-col">
           <div className="mb-8">
-            <div className="flex items-center space-x-2 text-xs font-bold text-rose-gold uppercase tracking-widest mb-4">
-              <span>Premium Collection</span>
-              <span>•</span>
-              <span>In Stock</span>
+            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-widest mb-4">
+              {product.stock > 0 ? (
+                <>
+                  <span className="text-green-600">In Stock</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-500">{product.stock} Units Available</span>
+                </>
+              ) : (
+                <span className="text-red-500">Out of Stock</span>
+              )}
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{product.name}</h1>
             <div className="flex items-center space-x-4 mb-6">
@@ -93,25 +99,36 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ slug, onAddToCart, onNavi
             </p>
 
             <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center border-2 border-gray-100 rounded-2xl overflow-hidden">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-4 hover:bg-gray-50 transition-colors">
-                  <Minus size={20} />
+              {product.stock > 0 ? (
+                <>
+                  <div className="flex items-center border-2 border-gray-100 rounded-2xl overflow-hidden">
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-4 hover:bg-gray-50 transition-colors">
+                      <Minus size={20} />
+                    </button>
+                    <span className="w-12 text-center font-bold text-lg">{quantity}</span>
+                    <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="p-4 hover:bg-gray-50 transition-colors">
+                      <Plus size={20} />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      for(let i=0; i<quantity; i++) onAddToCart(product);
+                      onNavigate('cart');
+                    }}
+                    className="flex-grow py-4 bg-premium-black text-white font-bold rounded-2xl hover:bg-rose-gold transition-all flex items-center justify-center group"
+                  >
+                    <ShoppingCart className="mr-2" size={20} />
+                    Add to Cart
+                  </button>
+                </>
+              ) : (
+                <button
+                  disabled
+                  className="w-full py-4 bg-gray-200 text-gray-500 font-bold rounded-2xl cursor-not-allowed flex items-center justify-center"
+                >
+                  Out of Stock
                 </button>
-                <span className="w-12 text-center font-bold text-lg">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="p-4 hover:bg-gray-50 transition-colors">
-                  <Plus size={20} />
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  for(let i=0; i<quantity; i++) onAddToCart(product);
-                  onNavigate('cart');
-                }}
-                className="flex-grow py-4 bg-premium-black text-white font-bold rounded-2xl hover:bg-rose-gold transition-all flex items-center justify-center group"
-              >
-                <ShoppingCart className="mr-2" size={20} />
-                Add to Cart
-              </button>
+              )}
             </div>
           </div>
 

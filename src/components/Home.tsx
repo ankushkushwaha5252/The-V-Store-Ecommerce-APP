@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, Minus, Plus } from 'lucide-react';
 import { Product, Category } from '../types';
+import { useAppContext } from '../AppContext';
 
 interface HomeProps {
   trending: Product[];
@@ -183,6 +184,11 @@ const Home: React.FC<HomeProps> = ({ trending, bestSellers, categories, onProduc
 };
 
 export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) => void, onAddToCart: (product: Product) => void }> = ({ product, onClick, onAddToCart }) => {
+  const { cart, updateQuantity } = useAppContext();
+  const cartItem = cart.find(item => item.id === product.id);
+  const quantity = cartItem ? cartItem.quantity : 0;
+  const isOutOfStock = product.stock <= 0;
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
@@ -192,7 +198,7 @@ export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) =
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? 'grayscale opacity-60' : ''}`}
           referrerPolicy="no-referrer"
         />
         <div className="absolute top-2 right-2 flex flex-col gap-2">
@@ -203,6 +209,13 @@ export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) =
         {product.is_trending === 1 && (
           <div className="absolute top-2 left-2 bg-rose-gold text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
             Trending
+          </div>
+        )}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+            <span className="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              Out of Stock
+            </span>
           </div>
         )}
       </div>
@@ -221,12 +234,38 @@ export const ProductCard: React.FC<{ product: Product, onClick: (slug: string) =
         </div>
         <div className="mt-auto flex items-center justify-between gap-2">
           <span className="text-base md:text-lg font-black">${product.price}</span>
-          <button
-            onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-            className="px-3 py-1.5 bg-premium-black text-white text-[10px] md:text-xs font-bold rounded-lg hover:bg-rose-gold transition-all whitespace-nowrap"
-          >
-            Add
-          </button>
+          
+          {isOutOfStock ? (
+            <button
+              disabled
+              className="px-3 py-1.5 bg-gray-200 text-gray-500 text-[10px] md:text-xs font-bold rounded-lg cursor-not-allowed whitespace-nowrap"
+            >
+              Out of Stock
+            </button>
+          ) : quantity > 0 ? (
+            <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+              <button
+                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, quantity - 1); }}
+                className="p-1.5 hover:bg-rose-gold hover:text-white transition-all"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="px-2 text-xs font-bold min-w-[24px] text-center">{quantity}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, quantity + 1); }}
+                className="p-1.5 hover:bg-rose-gold hover:text-white transition-all"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+              className="px-3 py-1.5 bg-premium-black text-white text-[10px] md:text-xs font-bold rounded-lg hover:bg-rose-gold transition-all whitespace-nowrap"
+            >
+              Add
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
